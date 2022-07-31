@@ -271,7 +271,7 @@ class RWKV_RNN():
         x = self.LN(x, w.ln_out)
 
         x = w.head.weight @ x
-        x = x.tolist()
+        #x = x.tolist()
 
         return x
 

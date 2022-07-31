@@ -43,7 +43,8 @@ for i in range(64):
 
 	inputs = { "idx": [ttx] }
 
-	# [1][1][767][50277]
+	# [1][1][767][50277] GPT
+	# [1][1][50277] RNN
 	outputs = session.run(output_names=["x"], input_feed=inputs)
 	state = outputs[0][0][tgt - 1]
 
