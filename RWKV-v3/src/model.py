@@ -18,7 +18,6 @@ n_embd = 768
 # ---> download RWKV-3 169M model from https://huggingface.co/BlinkDL/rwkv-3-pile-169m/tree/main
 
 MODEL_NAME = '20220720'
-K_EPS = 1e-8
 
 vocab_size = 50277
 VOCAB_NAME = '20B_tokenizer.json'
@@ -74,6 +73,7 @@ class RWKV_TimeMix(nn.Module):
 
     def forward(self, x):
         #B, T, C = x.size()
+        K_EPS = 1e-8
         B = 1
         T = 767
         C = 768
@@ -92,12 +92,12 @@ class RWKV_TimeMix(nn.Module):
 
         kv = k * v
 
-        self.time_w = torch.cat([torch.exp(self.time_decay) * self.time_curve.to(self.time_decay.device), self.time_first], dim=-1)
-        w = torch.exp(self.time_w)
+        time_w = torch.cat([torch.exp(self.time_decay) * self.time_curve.to(self.time_decay.device), self.time_first], dim=-1)
+        w = torch.exp(time_w)
         
         w = w[:,-T:].unsqueeze(1)
-        wkv = F.conv1d(nn.ZeroPad2d((T-1, 0, 0, 0))(kv), w, groups=C)
-        wk = F.conv1d(nn.ZeroPad2d((T-1, 0, 0, 0))(k), w, groups=C) + K_EPS
+        wkv = F.conv1d(torch.cat((torch.zeros(1, 768, T-1), kv), 2), w, groups=C)
+        wk = F.conv1d(torch.cat((torch.zeros(1, 768, T-1), k), 2), w, groups=C) + K_EPS
 
         rwkv = torch.sigmoid(r) * (wkv / wk).transpose(-1, -2)
         
@@ -113,6 +113,8 @@ class Block(nn.Module):
         self.ln2 = nn.LayerNorm(n_embd)
         if self.layer_id == 0:
             self.ln0 = nn.LayerNorm(n_embd)
+        else:
+            self.ln0 = torch.zeros
         
         self.att = RWKV_TimeMix(layer_id)
         self.ffn = RWKV_ChannelMix(layer_id)
@@ -228,6 +230,8 @@ class RWKV_RNN():
         return r * kv
 
     def SA(self, xx, w, name):
+        K_EPS = 1e-8
+
         if name not in self.xx:
             self.xx[name] = torch.zeros(n_embd, device=RUN_DEVICE)
             self.aa[name] = torch.zeros(n_embd, device=RUN_DEVICE)

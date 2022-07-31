@@ -47,11 +47,39 @@ def gpt_test(context):
 		print(model.tokenizer.decode(char), end='', flush=True)
 		ctx.append(char)
 
+def jit_test(context):
+	model = RWKV_GPT()
+	model.eval()
+
+	ctx = model.tokenizer.encode(context)
+
+	jit = torch.jit.script(model)
+
+	for i in range(64):
+		x = jit( torch.tensor([ctx]) )
+
+		char = sample_logits( x[0][len(ctx) - 1].tolist() )
+		char = char.item()
+
+		print(model.tokenizer.decode(char), end='', flush=True)
+		ctx.append(char)
+
+
 def gpt_export():
 	model = RWKV_GPT()
 
 	ctx = torch.randint(5000, (1, 767)) + 100
 
 	torch.onnx.export(model, ctx, "rwkv.onnx", input_names = ["idx"], output_names = ["x"], verbose=True)
+
+
+def jit_export():
+	model = RWKV_GPT()
+
+	ctx = torch.randint(5000, (1, 767)) + 100
+
+	jit = torch.jit.script(model)
+
+	torch.onnx.export(jit, ctx, "rwkv.onnx", input_names = ["idx"], output_names = ["x"], verbose=True)
 
 
