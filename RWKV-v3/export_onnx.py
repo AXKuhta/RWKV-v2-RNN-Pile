@@ -8,6 +8,7 @@ import copy
 import torch
 from torch.nn import functional as F
 
+from src.model import RWKV_RNN
 from src.model import RWKV_GPT
 
 np.set_printoptions(precision=4, suppress=True, linewidth=200)
@@ -64,6 +65,20 @@ def jit_test(context):
 		print(model.tokenizer.decode(char), end='', flush=True)
 		ctx.append(char)
 
+def rnn_test(context):
+	model = RWKV_RNN()
+
+	ctx = model.tokenizer.encode(context)
+
+	for i in range(64):
+		x = model( torch.tensor([ctx]) )
+
+	char = sample_logits( x[0][len(ctx) - 1].tolist() )
+	char = char.item()
+
+	print(model.tokenizer.decode(char), end='', flush=True)
+	ctx.append(char)
+
 
 def gpt_export():
 	model = RWKV_GPT()
@@ -72,6 +87,12 @@ def gpt_export():
 
 	torch.onnx.export(model, ctx, "rwkv.onnx", input_names = ["idx"], output_names = ["x"], verbose=True)
 
+def rnn_export():
+	model = RWKV_RNN()
+
+	ctx = torch.randint(5000, (1, 768)) + 100
+
+	torch.onnx.export(model, ctx, "rwkv.onnx", input_names = ["idx"], output_names = ["x"], verbose=True)
 
 def jit_export():
 	model = RWKV_GPT()

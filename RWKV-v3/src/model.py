@@ -166,6 +166,7 @@ class RWKV_RNN():
         self.n_layer = n_layer
         self.n_embd = n_embd
         self.tokenizer = PreTrainedTokenizerFast(tokenizer_file=VOCAB_NAME)
+        self.training=False
 
         self.w = types.SimpleNamespace()
         
@@ -273,5 +274,20 @@ class RWKV_RNN():
         x = x.tolist()
 
         return x
+
+    def forward(self, ctx):
+        return self.run(ctx)
+
+    def __call__(self, ctx):
+        return self.run(ctx)
+
+    def train(self, x):
+        pass
+
+    def modules(self):
+        return []
+
+    def state_dict(self, keep_vars):
+        return {}
 
 ################################################################################################################
