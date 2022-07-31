@@ -17,7 +17,7 @@ n_embd = 768
 
 # ---> download RWKV-3 169M model from https://huggingface.co/BlinkDL/rwkv-3-pile-169m/tree/main
 
-MODEL_NAME = '/mnt/ssd-1/BlinkDL_dont_delete/B/TRAIN_100M/out/all-1652'
+MODEL_NAME = '20220720'
 K_EPS = 1e-8
 
 vocab_size = 50277
@@ -73,7 +73,10 @@ class RWKV_TimeMix(nn.Module):
         self.output = nn.Linear(n_embd, n_embd, bias=False)
 
     def forward(self, x):
-        B, T, C = x.size()
+        #B, T, C = x.size()
+        B = 1
+        T = 767
+        C = 768
 
         xx = self.time_shift(x)
         xk = x * self.time_mix_k + xx * (1 - self.time_mix_k)
@@ -136,12 +139,12 @@ class RWKV_GPT(nn.Module):
 
         self.ctx_len = ctx_len
         self.eval()
-        self.load_state_dict(torch.load(MODEL_NAME + '.pth'))
+        self.load_state_dict(torch.load(MODEL_NAME + '.pth', map_location=torch.device('cpu')))
         self.eval()
 
     def forward(self, idx):
-        B, T = idx.size()
-        assert T <= self.ctx_len, "Cannot forward, because len(input) > model ctx_len."
+        #B, T = idx.size()
+        #assert T <= self.ctx_len, "Cannot forward, because len(input) > model ctx_len."
         
         x = self.emb(idx)
         x = self.blocks(x)
