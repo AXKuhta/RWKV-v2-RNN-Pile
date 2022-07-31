@@ -138,9 +138,9 @@ class RWKV_GPT(nn.Module):
         self.head = nn.Linear(n_embd, vocab_size, bias=False)
 
         self.ctx_len = ctx_len
-        self.eval()
+        #self.eval()
         self.load_state_dict(torch.load(MODEL_NAME + '.pth', map_location=torch.device('cpu')))
-        self.eval()
+        #self.eval()
 
     def forward(self, idx):
         #B, T = idx.size()
