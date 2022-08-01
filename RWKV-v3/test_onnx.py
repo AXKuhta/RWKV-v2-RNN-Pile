@@ -80,8 +80,12 @@ session = InferenceSession("rwkv.onnx")
 text = """\nIn a shocking finding,"""
 ctx = tokenizer.encode(text)
 
-if len( session.get_outputs() ) == 1:
-	print("This is an RWKV_GPT()-style model")
+if len( session.get_inputs() ) == 1:
+	print("This is an RWKV_GPT()-style model:")
+
+	ctx_len = session.get_inputs()[0].shape[0]
+	print(" ctx_len:", ctx_len)
+
 	print("Tokens in context:", len(ctx))
 	lprint( tokenizer.decode(ctx) )
 	onnx_gpt_run(ctx)
