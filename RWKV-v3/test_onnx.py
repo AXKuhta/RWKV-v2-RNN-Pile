@@ -86,7 +86,14 @@ if len( session.get_outputs() ) == 1:
 	lprint( tokenizer.decode(ctx) )
 	onnx_gpt_run(ctx)
 else:
-	print("This is an RWKV_RNN()-style model")
+	print("This is an RWKV_RNN()-style model:")
+
+	n_layer, n_embd = session.get_inputs()[1].shape
+	ctx_len = session.get_inputs()[0].shape[0]
+	print(" n_layer:", n_layer)
+	print(" n_embd:", n_embd)
+	print(" ctx_len:", ctx_len)
+
 	print("Tokens in context:", len(ctx))
 	lprint( tokenizer.decode(ctx) )
 	onnx_rnn_run(ctx)
