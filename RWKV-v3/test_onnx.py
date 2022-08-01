@@ -31,6 +31,11 @@ print("Tokens in context:", len(ctx))
 
 lprint( tokenizer.decode(ctx) )
 
+xx_att = torch.zeros(12, 768).tolist()
+aa_att = torch.zeros(12, 768).tolist()
+bb_att = torch.zeros(12, 768).tolist()
+xx_ffn = torch.zeros(12, 768).tolist()
+
 for i in range(64):
 	tgt = len(ctx)
 	ttx = []
@@ -38,15 +43,21 @@ for i in range(64):
 	for id in ctx:
 		ttx.append(id)
 
-	while len(ttx) < 767:
-		ttx.append( 0 )
+	# RNN takes the very last token
+	# Pad the input from the front
+	while len(ttx) < 768:
+		ttx.insert(0, 0)
 
-	inputs = { "idx": [ttx] }
+	inputs = { "idx": ttx, "xx_att": xx_att, "aa_att": aa_att, "bb_att": bb_att, "xx_ffn": xx_ffn }
 
-	# [1][1][767][50277] GPT
-	# [1][1][50277] RNN
-	outputs = session.run(output_names=["x"], input_feed=inputs)
-	state = outputs[0][0][tgt - 1]
+	outputs = session.run(output_names=["x", "xx_att_r", "aa_att_r", "bb_att_r", "xx_ffn_r"], input_feed=inputs)
+	state = outputs[0] # [50277]
+
+	# [12][768]
+	xx_att = outputs[1]
+	aa_att = outputs[2]
+	bb_att = outputs[3]
+	xx_ffn = outputs[4]
 
 	char = sample_logits(state)
 	char = char.item()
