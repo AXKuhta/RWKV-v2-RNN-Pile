@@ -264,13 +264,6 @@ class RWKV_RNN():
         w = self.w
         x = w.emb.weight[ctx[-1]]
 
-        torch.onnx.log("Size of ctx", ctx.size())
-        torch.onnx.log("Size of xx_att", xx_att.size())
-        torch.onnx.log("Size of aa_att", aa_att.size())
-        torch.onnx.log("Size of bb_att", bb_att.size())
-        torch.onnx.log("Size of xx_ffn", xx_ffn.size())
-        torch.onnx.log("Size of x", x.size())
-
         x = self.LN(x, w.blocks[0].ln0)
         for i in range(n_layer):
             self.xx[f'att.{i}'] = xx_att[i]
@@ -300,14 +293,6 @@ class RWKV_RNN():
         aa_att_r = torch.stack(aa_att_cd)
         bb_att_r = torch.stack(bb_att_cd)
         xx_ffn_r = torch.stack(xx_ffn_cd)
-
-        # xx_att   [12, 768]
-        # xx_att_r [12, 768, 768]
-        # Why is that?
-        torch.onnx.log("Size of xx_att_r", xx_att_r.size())
-        torch.onnx.log("Size of aa_att_r", aa_att_r.size())
-        torch.onnx.log("Size of bb_att_r", bb_att_r.size())
-        torch.onnx.log("Size of xx_ffn_r", xx_ffn_r.size())
 
         return x, xx_att_r, aa_att_r, bb_att_r, xx_ffn_r
 
