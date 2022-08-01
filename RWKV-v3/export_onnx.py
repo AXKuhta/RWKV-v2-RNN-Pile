@@ -68,16 +68,26 @@ def jit_test(context):
 def rnn_test(context):
 	model = RWKV_RNN()
 
+	xx_att = torch.zeros(12, 768)
+	aa_att = torch.zeros(12, 768)
+	bb_att = torch.zeros(12, 768)
+	xx_ffn = torch.zeros(12, 768)
+
 	ctx = model.tokenizer.encode(context)
 
 	for i in range(64):
-		x = model( torch.tensor([ctx]) )
+		ttx = [] + ctx
 
-	char = sample_logits( x[0][len(ctx) - 1].tolist() )
-	char = char.item()
+		while len(ttx) < 768:
+			ttx.insert(0, 0)
 
-	print(model.tokenizer.decode(char), end='', flush=True)
-	ctx.append(char)
+		x, xx_att, aa_att, bb_att, xx_ffn = model( torch.tensor(ttx), xx_att, aa_att, bb_att, xx_ffn )
+
+		char = sample_logits( x.tolist() )
+		char = char.item()
+
+		print(model.tokenizer.decode(char), end='', flush=True)
+		ctx.append(char)
 
 
 def gpt_export():
