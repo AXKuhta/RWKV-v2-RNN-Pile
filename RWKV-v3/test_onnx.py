@@ -47,9 +47,11 @@ def onnx_rnn_run(ctx):
 	bb_att = torch.zeros(12, 768).tolist()
 	xx_ffn = torch.zeros(12, 768).tolist()
 
+	ptx = [ ctx.pop(0) ]
+
 	for i in range(64):
 		tgt = len(ctx)
-		ttx = [] + ctx
+		ttx = [] + ptx
 
 		# RNN takes the very last token
 		# Pad the input from the front
@@ -70,8 +72,13 @@ def onnx_rnn_run(ctx):
 		char = sample_logits(state)
 		char = char.item()
 
-		lprint( tokenizer.decode(char) )
-		ctx.append(char)
+		if len(ctx) > 0:
+			# Outputs produced during the hidden state init sequence may be interesting to observe
+			# lprint( tokenizer.decode(ptx) + " ===>" + tokenizer.decode(char) )
+			ptx.append( ctx.pop(0) )
+		else:
+			lprint( tokenizer.decode(char) )
+			ptx.append(char)
 
 
 tokenizer = PreTrainedTokenizerFast(tokenizer_file="20B_tokenizer.json")
